@@ -19,7 +19,7 @@ class FileManagerApp:
     self.path_label.pack()
     self.listbox = tk.Listbox(self.root, selectmode=tk.SINGLE)
     self.listbox.pack(expand=True, fill=tk.BOTH)
-    self.listbox.bind('<Double-l', self.on_item_double_click)
+    self.listbox.bind('<Double-l>', self.on_item_double_click)
     self.buttons_frame = tk.Frame(self.root)
     self.buttons_frame.pack(fill=tk.X)
     self.create_file_btn = tk.Button(self.buttons_frame, text="Create File", command=self.create_file)
@@ -35,10 +35,10 @@ class FileManagerApp:
 
 
   def update_listbox(self):
-    self.listbox.delete(0,tk.END)
-    self.path_label.config(self.current_dir_path)
+    self.listbox.delete(0, tk.END)
+    self.path_label.config(text=self.current_dir_path)
     for item in os.listdir(self.current_dir_path):
-      self.listbox.insert(tk.END,item)
+      self.listbox.insert(tk.END, item)
     
 
   def on_item_double_click(self, event):
@@ -47,6 +47,53 @@ class FileManagerApp:
     if os.path.isdir(self.selected_path):
       self.current_dir_path = selected_path
       self.update_listbox()
+
+
+  def create_file(self):
+    filename = simpledialog.askstring("Create File", "Enter the filename: ")
+    if filename:
+      open(os.path.join(self.current_dir_path, filename), 'w').close()
+      self.update_listbox()
+
+
+  def create_folder(self):
+    foldername = simpledialog.askstring("Create Folder", "Enter the foldername: ")
+    if foldername:
+      os.makedirs(os.path.join(self.current_dir_path, foldername), exist_ok=True)
+      self.update_listbox()
+
+
+  def delete_item(self):
+    selected_item = self.listbox.get(self.listbox.curselection())
+    selected_path = os.path.join(self.current_dir_path, selected_item)
+    if os.path.isfile(selected_path):
+      os.remove(selected_item)
+    elif os.path.isdir(selected_item):
+      shutil.rmtree(selected_item)
+    self.update_listbox()
+
+
+
+  def copy_item(self):
+    selected_item = self.listbox.get(self.listbox.curselection())
+    src_path = os.path.join(self.current_dir_path, selected_item)
+    dst_path = filedialog.askdirectory(title="Select destination directory")
+    if dst_path:
+      if os.path.isdir(src_path):
+        shutil.copytree(src_path, (os.path.join(dst_path, os.path.basename(src_path))))
+      else:
+        shutil.copy2(src_path, dst_path)
+      self.update_listbox()
+
+
+  def move_item(self):
+    selected_item = self.listbox.get(self.listbox.curselection())
+    src_path = os.path.join(self.current_dir_path, selected_item)
+    dst_path = filedialog.askdirectory(title="Select destination directory")
+    if dst_path:
+      shutil.move(src_path, dst_path)
+      self.update_listbox()
+
 
 
 if __name__ == '__main__':
